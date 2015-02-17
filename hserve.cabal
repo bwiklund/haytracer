@@ -9,7 +9,7 @@ library
                    , time
                    , containers
                    , bytestring
-  exposed-modules:   Vector, Render, Scene
+  exposed-modules:   Vector, Render, Scene, Camera, Sphere
 
 executable demo
   hs-source-dirs:    demo
