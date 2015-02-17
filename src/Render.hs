@@ -15,14 +15,17 @@ data Camera = Camera {
 }
 
 data Color = Color Double Double Double
+multiply (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
 
 toRgbArray :: Color -> [Double]
 toRgbArray (Color r g b) = [r, g, b]
 
-data RayCastResult = RayCastResult {
+data Photon = Photon {
+  color :: Color,
   ray :: Ray,
-  color :: Color
+  bounces :: Int
 }
+newPhotonFromRay ray = Photon (Color 1 1 1) ray 0
 
 -- TODO: actually respect dir instead of seding out width 0 0 1 as center of screen
 cameraRaysForPlate :: Camera -> PlateSettings -> [Ray]
@@ -35,12 +38,13 @@ cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
                          in Ray pos (Vector x y z)
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
-rayCast :: Scene -> Ray -> RayCastResult
-rayCast scene ray@(Ray _ (Vector x y z)) =
-  let mIntersect = intersectDistance (head $ objects scene) ray
+photonCast :: Scene -> Photon -> Photon
+photonCast scene photon =
+  let mIntersect = intersectDistance (head $ objects scene) (ray photon)
    in case mIntersect of
-     Nothing -> RayCastResult ray (Color 0 0 0)
-     Just dist -> RayCastResult ray (Color 1 1 1)
+     Nothing -> photon -- we're done
+     Just dist -> let newColor = (multiply (Color 0.5 0.5 0.5) (color photon))
+                   in Photon newColor (ray photon) ((bounces photon)+1)
 
 data PlateSettings = PlateSettings { width :: Int, height :: Int }
 
@@ -56,7 +60,8 @@ toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels p
 renderScene :: Scene -> Camera -> PlateSettings -> Plate
 renderScene scene camera plateSettings =
   let rays = cameraRaysForPlate camera plateSettings
-      results = map (rayCast scene) rays
+      initialPhotons = map newPhotonFromRay rays
+      results = map (photonCast scene) initialPhotons
       colors = map color results
    in Plate plateSettings colors
 
