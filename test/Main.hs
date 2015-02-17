@@ -38,8 +38,14 @@ tests = TestList [
 
     TestCase $ assertEqual
       "Vector normalize"
-      (normalize (Vector 1 1 1))
-      (Vector ((sqrt 3)/3) ((sqrt 3)/3) ((sqrt 3)/3))
+      (normalize (Vector 2 0 0))
+      (Vector 1 0 0),
+
+
+    TestCase $ assertEqual
+      "Vector dot product"
+      (dot (Vector 1 1 1) (Vector 1 1 1))
+      3
 
   ]
 
