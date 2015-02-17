@@ -17,3 +17,6 @@ mag v = sqrt (magSq v)
 
 magSq :: Vector -> Float
 magSq (Vector x y z) = x*x + y*y + z*z
+
+normalize :: Vector -> Vector
+normalize v = mult v (1.0 / (mag v))

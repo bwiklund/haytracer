@@ -33,7 +33,13 @@ tests = TestList [
     TestCase $ assertEqual
       "Vector magnitude"
       (mag (Vector 1 2 3))
-      (sqrt 14)
+      (sqrt 14),
+
+
+    TestCase $ assertEqual
+      "Vector normalize"
+      (normalize (Vector 1 1 1))
+      (Vector ((sqrt 3)/3) ((sqrt 3)/3) ((sqrt 3)/3))
 
   ]
 
