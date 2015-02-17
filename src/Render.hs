@@ -29,12 +29,15 @@ cameraRaysForPlate :: Camera -> PlateSettings -> [Ray]
 cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
   let dw = fromIntegral w
       dh = fromIntegral h
-      rayForPixel i j = Ray pos (Vector ((i/dw - 0.5) * zoom) ((j/dh - 0.5) * zoom) 1.0)
+      rayForPixel i j = let x = (((i + 0.5)/dw * 2.0 - 1.0) * zoom)
+                            y = (((j + 0.5)/dh * 2.0 - 1.0) * zoom)
+                            z = 1.0
+                         in Ray pos (Vector x y z)
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
 rayCast :: Scene -> Ray -> RayCastResult
 rayCast scene ray@(Ray _ (Vector x y z)) =
-  let mIntersect = intersectDistance (head $ objects scene ) ray
+  let mIntersect = intersectDistance (head $ objects scene) ray
    in case mIntersect of
      Nothing -> RayCastResult ray (Color 0 0 0)
      Just dist -> RayCastResult ray (Color 1 1 1)

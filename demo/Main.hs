@@ -5,8 +5,8 @@ import Scene
 import Vector
 import Sphere
 
-testScene = Scene [Sphere (Vector 0 0 0) 0.2]
-testCamera = Camera (Vector 0 0 (-2)) (Vector 0 0 1) 0.5
-testPlateSettings = PlateSettings 200 200
+testScene = Scene [Sphere (Vector 0 0 5) 1]
+testCamera = Camera (Vector 0 0 0) (Vector 0 0 1) 0.5
+testPlateSettings = PlateSettings {width = 200, height = 200}
 
 main = toRawTest (renderScene testScene testCamera testPlateSettings) "output.raw"

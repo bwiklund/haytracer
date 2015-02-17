@@ -24,4 +24,4 @@ normalize v = mult v (1.0 / (mag v))
 dot :: Vector -> Vector -> Double
 dot (Vector ax ay az) (Vector bx by bz) = ax*bx + ay*by + az*bz
 
-data Ray = Ray { origin :: Vector, direction :: Vector }
+data Ray = Ray { origin :: Vector, direction :: Vector } deriving (Eq, Show)

@@ -3,6 +3,8 @@ module Main (main) where
 import Test.HUnit
 
 import Vector
+import Sphere
+import Render
 
 tests = TestList [
 
@@ -45,7 +47,47 @@ tests = TestList [
     TestCase $ assertEqual
       "Vector dot product"
       (dot (Vector 1 1 1) (Vector 1 1 1))
-      3
+      3,
+
+
+    TestCase $ assertEqual
+      "Sphere ray intersection hit"
+      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
+      (Just 1),
+
+
+    TestCase $ assertEqual
+      "Sphere ray intersection miss"
+      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 2 (-2)) (Vector 0 0 1)))
+      Nothing,
+
+
+    TestCase $ assertEqual
+      "Sphere ray intersection miss"
+      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 1 1)))
+      Nothing,
+
+
+    TestCase $ assertEqual
+      "Sphere ray intersection from inside"
+      (intersectDistance (Sphere (Vector 0 0 0) 0.5) (Ray (Vector 0 0 0) (Vector 0 0 1)))
+      (Just 0.5),
+
+
+    TestCase $ assertEqual
+      "Camera ray generation 1x1"
+      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 1 1))
+      [(Ray (Vector 0 0 0) (Vector 0 0 1))],
+
+
+    TestCase $ assertEqual
+      "Camera ray generation 2x2"
+      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 2 2))
+      [(Ray (Vector 0 0 0) (Vector (-0.25) (-0.25) 1)),
+       (Ray (Vector 0 0 0) (Vector (-0.25) (0.25) 1)),
+       (Ray (Vector 0 0 0) (Vector (0.25) (-0.25) 1)),
+       (Ray (Vector 0 0 0) (Vector (0.25) (0.25) 1))]
+
 
   ]
 
