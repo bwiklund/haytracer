@@ -1,3 +1,5 @@
 module Main where
 
-main = putStrLn "behold"
+import Render
+
+main = toRawTest RenderResult "output.raw"

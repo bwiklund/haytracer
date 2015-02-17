@@ -8,7 +8,8 @@ library
   build-depends:     base
                    , time
                    , containers
-  exposed-modules:   Vector
+                   , bytestring
+  exposed-modules:   Vector, Render, Scene
 
 executable demo
   hs-source-dirs:    demo
