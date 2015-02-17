@@ -20,3 +20,6 @@ magSq (Vector x y z) = x*x + y*y + z*z
 
 normalize :: Vector -> Vector
 normalize v = mult v (1.0 / (mag v))
+
+
+data Ray = Ray Vector Vector
