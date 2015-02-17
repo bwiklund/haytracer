@@ -7,12 +7,7 @@ import qualified Data.ByteString as B
 import Scene
 import Vector
 import Sphere
-
-data Camera = Camera {
-  position :: Vector,
-  direction :: Vector,
-  zoom :: Double
-}
+import qualified Camera
 
 data Color = Color Double Double Double
 multiply (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
@@ -28,8 +23,8 @@ data Photon = Photon {
 newPhotonFromRay ray = Photon (Color 1 1 1) ray 0
 
 -- TODO: actually respect dir instead of seding out width 0 0 1 as center of screen
-cameraRaysForPlate :: Camera -> PlateSettings -> [Ray]
-cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
+cameraRaysForPlate :: Camera.Camera -> PlateSettings -> [Ray]
+cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) =
   let dw = fromIntegral w
       dh = fromIntegral h
       rayForPixel i j = let x = (((i + 0.5)/dw * 2.0 - 1.0) * zoom)
@@ -44,7 +39,9 @@ photonCast scene photon =
    in case mIntersect of
      Nothing -> photon -- we're done
      Just dist -> let newColor = (multiply (Color 0.5 0.5 0.5) (color photon))
-                   in Photon newColor (ray photon) ((bounces photon)+1)
+                      newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) dist)
+                      newDirection = (direction (ray photon)) -- todo random
+                   in Photon newColor (Ray newPosition newDirection) ((bounces photon)+1)
 
 data PlateSettings = PlateSettings { width :: Int, height :: Int }
 
@@ -57,7 +54,7 @@ toBytes :: Plate -> B.ByteString
 toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels plate))
 
 -- stub
-renderScene :: Scene -> Camera -> PlateSettings -> Plate
+renderScene :: Scene -> Camera.Camera -> PlateSettings -> Plate
 renderScene scene camera plateSettings =
   let rays = cameraRaysForPlate camera plateSettings
       initialPhotons = map newPhotonFromRay rays

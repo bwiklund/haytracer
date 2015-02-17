@@ -5,6 +5,7 @@ import Test.HUnit
 import Vector
 import Sphere
 import Render
+import Camera
 
 tests = TestList [
 
