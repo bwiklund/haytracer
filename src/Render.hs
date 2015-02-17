@@ -7,20 +7,22 @@ import qualified Data.ByteString as B
 import Scene
 import Camera
 
-data RenderResult = RenderResult {
-  width :: Int,
-  height :: Int,
+data PlateSettings = PlateSettings { width :: Int, height :: Int }
+
+data Plate = Plate {
+  settings :: PlateSettings,
   buffer :: [Double]
 }
 
-toBytes :: RenderResult -> B.ByteString
-toBytes renderResult = B.pack (map (floor . (*255)) $ buffer renderResult)
+toBytes :: Plate -> B.ByteString
+toBytes plate = B.pack (map (floor . (*255)) $ buffer plate)
 
 -- stub
-renderScene :: Scene -> Camera -> RenderResult
-renderScene scene camera = RenderResult 2 2 [1,0,1,0,1,0,1,0,1,0,1,0]
+renderScene :: Scene -> Camera -> PlateSettings -> Plate
+renderScene scene camera plateSettings =
+  Plate plateSettings (replicate ((width plateSettings) * (height plateSettings) * 3) 0.5)
 
-toRawTest :: RenderResult -> FilePath -> IO ()
-toRawTest renderResult filePath = do
-  let bytes = toBytes renderResult
+toRawTest :: Plate -> FilePath -> IO ()
+toRawTest plate filePath = do
+  let bytes = toBytes plate
   B.writeFile filePath bytes
