@@ -13,6 +13,16 @@ data Camera = Camera {
   zoom :: Double
 }
 
+data Color = Color Double Double Double
+
+toRgbArray :: Color -> [Double]
+toRgbArray (Color r g b) = [r, g, b]
+
+data RayCastResult = RayCastResult {
+  ray :: Ray,
+  color :: Color
+}
+
 -- TODO: actually respect dir instead of seding out width 0 0 1 as center of screen
 cameraRaysForPlate :: Camera -> PlateSettings -> [Ray]
 cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
@@ -21,25 +31,26 @@ cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
       rayForPixel i j = Ray pos (Vector ((i/dw - 0.5) * zoom) ((j/dh - 0.5) * zoom) 1.0)
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
--- move me?
-toPixel :: Ray -> [Double]
-toPixel (Ray (Vector x1 y1 z1) (Vector x2 y2 z2)) = [x2, y2, z2]
+rayCast :: Scene -> Ray -> RayCastResult
+rayCast _ ray@(Ray _ (Vector x y z)) = RayCastResult ray (Color x y z)
 
 data PlateSettings = PlateSettings { width :: Int, height :: Int }
 
 data Plate = Plate {
   settings :: PlateSettings,
-  buffer :: [Double]
+  pixels :: [Color]
 }
 
 toBytes :: Plate -> B.ByteString
-toBytes plate = B.pack (map (floor . (*255)) $ buffer plate)
+toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels plate))
 
 -- stub
 renderScene :: Scene -> Camera -> PlateSettings -> Plate
 renderScene scene camera plateSettings =
   let rays = cameraRaysForPlate camera plateSettings
-   in Plate plateSettings (concat (map toPixel rays))
+      results = map (rayCast scene) rays
+      colors = map color results
+   in Plate plateSettings colors
 
 toRawTest :: Plate -> FilePath -> IO ()
 toRawTest plate filePath = do
