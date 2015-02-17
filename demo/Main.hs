@@ -1,5 +1,6 @@
 module Main where
 
 import Render
+import Scene
 
-main = toRawTest RenderResult "output.raw"
+main = toRawTest (renderScene Scene) "output.raw"
