@@ -57,9 +57,7 @@ toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels p
 renderScene :: Scene -> Camera.Camera -> PlateSettings -> Plate
 renderScene scene camera plateSettings =
   let rays = cameraRaysForPlate camera plateSettings
-      initialPhotons = map newPhotonFromRay rays
-      results = map (photonCast scene) initialPhotons
-      colors = map color results
+      colors = map (color . (photonCast scene) . newPhotonFromRay) rays
    in Plate plateSettings colors
 
 toRawTest :: Plate -> FilePath -> IO ()
