@@ -3,4 +3,4 @@ module Scene where
 import Sphere
 
 -- stub
-data Scene = Scene [Sphere]
+data Scene = Scene { objects :: [Sphere] }

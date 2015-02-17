@@ -6,6 +6,7 @@ import qualified Data.ByteString as B
 
 import Scene
 import Vector
+import Sphere
 
 data Camera = Camera {
   position :: Vector,
@@ -32,7 +33,11 @@ cameraRaysForPlate (Camera pos dir zoom) (PlateSettings w h) =
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
 rayCast :: Scene -> Ray -> RayCastResult
-rayCast _ ray@(Ray _ (Vector x y z)) = RayCastResult ray (Color x y z)
+rayCast scene ray@(Ray _ (Vector x y z)) =
+  let mIntersect = intersectDistance (head $ objects scene ) ray
+   in case mIntersect of
+     Nothing -> RayCastResult ray (Color 0 0 0)
+     Just dist -> RayCastResult ray (Color 1 1 1)
 
 data PlateSettings = PlateSettings { width :: Int, height :: Int }
 
