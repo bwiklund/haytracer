@@ -1,4 +1,4 @@
-name:                htrace
+name:                haytracer
 version:             0.1.0.0
 build-type:          Simple
 cabal-version:       >=1.8
@@ -15,7 +15,7 @@ executable demo
   hs-source-dirs:    demo
   main-is:           Main.hs
   build-depends:     base
-                   , htrace
+                   , haytracer
                    , containers
 
 test-suite spec
@@ -23,6 +23,6 @@ test-suite spec
   main-is:           Main.hs
   type:              exitcode-stdio-1.0
   build-depends:     base
-                   , htrace
+                   , haytracer
                    , HUnit
                    , containers
