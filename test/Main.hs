@@ -71,25 +71,31 @@ tests = TestList [
 
     TestCase $ assertEqual
       "Sphere ray intersection hit"
-      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
+      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
       (Just 1),
 
 
     TestCase $ assertEqual
       "Sphere ray intersection miss"
-      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 2 (-2)) (Vector 0 0 1)))
+      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 2 (-2)) (Vector 0 0 1)))
       Nothing,
 
 
     TestCase $ assertEqual
       "Sphere ray intersection miss"
-      (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 1 1)))
+      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 1 1)))
+      Nothing,
+
+
+    TestCase $ assertEqual
+      "Sphere ray intersection miss"
+      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 (-1))))
       Nothing,
 
 
     TestCase $ assertEqual
       "Sphere ray intersection from inside"
-      (intersectDistance (Sphere (Vector 0 0 0) 0.5) (Ray (Vector 0 0 0) (Vector 0 0 1)))
+      (forwardIntersectDistance (Sphere (Vector 0 0 0) 0.5) (Ray (Vector 0 0 0) (Vector 0 0 1)))
       (Just 0.5),
 
 
@@ -106,7 +112,6 @@ tests = TestList [
        (Ray (Vector 0 0 0) (Vector (-0.25) (0.25) 1)),
        (Ray (Vector 0 0 0) (Vector (0.25) (-0.25) 1)),
        (Ray (Vector 0 0 0) (Vector (0.25) (0.25) 1))]
-
 
   ]
 

@@ -37,20 +37,21 @@ cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) =
 
 photonCast :: Scene -> StdGen -> Photon -> Photon
 photonCast scene stdGen photon =
-  let mIntersect = intersectDistance (head $ objects scene) (ray photon)
+  let mIntersect = forwardIntersectDistance (head $ objects scene) (ray photon)
    in case mIntersect of
      Nothing -> photon -- we're done
-     Just dist -> let lightLevel = 0.8
-                      nextColor = multColor (Color lightLevel lightLevel lightLevel) (color photon)
-                      newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) dist)
+     Just dist -> let diffuse = 0.97
+                      nextColor = multColor (Color diffuse diffuse diffuse) (color photon)
+                      newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) (dist - 0.0001))
                       bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
+                      nextStdGen = snd $ next stdGen
                       nextDirection = randomVector bounceStdGen
                       nextBounceNum = (bounces photon) + 1
                       nextRay = Ray newPosition nextDirection
                       nextPhoton = Photon nextColor nextRay nextBounceNum
                    in if nextBounceNum > 2
                         then nextPhoton
-                        else photonCast scene bounceStdGen nextPhoton
+                        else photonCast scene nextStdGen nextPhoton
 
 data PlateSettings = PlateSettings {
   width :: Int,
@@ -63,11 +64,12 @@ data Plate = Plate {
 } deriving (Eq, Show)
 
 toBytes :: Plate -> B.ByteString
-toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels plate))
+toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
+                 in B.pack (map doubleToByteClamped (concat $ map toRgbArray $ pixels plate))
 
 -- stub
 applyEnvironmentLight :: Photon -> Photon
-applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
+applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 0.1 else 0.005
                                    lightColor = Color lightLevel lightLevel lightLevel
                                    newColor = multColor (color photon) lightColor
                                 in Photon newColor (ray photon) (bounces photon)
@@ -79,7 +81,7 @@ addPlates p1 p2 = let colorsAdded = zipWith addColor (pixels p1) (pixels p2)
 
 renderScene :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
 renderScene scene camera plateSettings stdGen =
-  let passStdGens = take 5 (map mkStdGen $ (randoms stdGen :: [Int]))
+  let passStdGens = take 10 (map mkStdGen $ (randoms stdGen :: [Int]))
       passes = map (renderPass scene camera plateSettings) passStdGens -- todo: use fold and accumulate because memory
    in foldl1 addPlates passes
 
