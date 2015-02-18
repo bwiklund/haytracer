@@ -10,8 +10,9 @@ import Sphere
 import qualified Camera
 import System.Random
 
-data Color = Color Double Double Double
-multiply (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
+data Color = Color Double Double Double deriving (Eq, Show)
+multColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
+addColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1+r2) (g1+g2) (b1+b2)
 
 toRgbArray :: Color -> [Double]
 toRgbArray (Color r g b) = [r, g, b]
@@ -40,7 +41,7 @@ photonCast scene stdGen photon =
    in case mIntersect of
      Nothing -> photon -- we're done
      Just dist -> let lightLevel = 0.8
-                      nextColor = multiply (Color lightLevel lightLevel lightLevel) (color photon)
+                      nextColor = multColor (Color lightLevel lightLevel lightLevel) (color photon)
                       newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) dist)
                       bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
                       nextDirection = randomVector bounceStdGen
@@ -51,12 +52,15 @@ photonCast scene stdGen photon =
                         then nextPhoton
                         else photonCast scene bounceStdGen nextPhoton
 
-data PlateSettings = PlateSettings { width :: Int, height :: Int }
+data PlateSettings = PlateSettings {
+  width :: Int,
+  height :: Int
+} deriving (Eq, Show)
 
 data Plate = Plate {
   settings :: PlateSettings,
   pixels :: [Color]
-}
+} deriving (Eq, Show)
 
 toBytes :: Plate -> B.ByteString
 toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels plate))
@@ -65,15 +69,26 @@ toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels p
 applyEnvironmentLight :: Photon -> Photon
 applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
                                    lightColor = Color lightLevel lightLevel lightLevel
-                                   newColor = multiply (color photon) lightColor
+                                   newColor = multColor (color photon) lightColor
                                 in Photon newColor (ray photon) (bounces photon)
+
+-- TODO: check dimensions
+addPlates :: Plate -> Plate -> Plate
+addPlates p1 p2 = let colorsAdded = zipWith addColor (pixels p1) (pixels p2)
+                   in Plate (settings p1) colorsAdded
 
 renderScene :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
 renderScene scene camera plateSettings stdGen =
+  let passStdGens = take 5 (map mkStdGen $ (randoms stdGen :: [Int]))
+      passes = map (renderPass scene camera plateSettings) passStdGens -- todo: use fold and accumulate because memory
+   in foldl1 addPlates passes
+
+renderPass :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
+renderPass scene camera plateSettings stdGen =
   let rays = cameraRaysForPlate camera plateSettings
       photons = map newPhotonFromRay rays
       -- each photon needs it's OWN seeded RNG if this is to run in parallel and without IO
-      stdGens = (map mkStdGen $ (randoms stdGen :: [Int]))
+      stdGens = map mkStdGen $ (randoms stdGen :: [Int])
       photonResults = zipWith (\stdGen' photon -> photonCast scene stdGen' photon) stdGens photons
       envLitPhotons = map applyEnvironmentLight photonResults
       colors = map color envLitPhotons

@@ -52,6 +52,24 @@ tests = TestList [
 
 
     TestCase $ assertEqual
+      "Color mult"
+      (multColor (Color 0.5 0.5 0.5) (Color 0.5 0.5 0.5))
+      (Color 0.25 0.25 0.25),
+
+
+    TestCase $ assertEqual
+      "Color add"
+      (addColor (Color 0.5 0.5 0.5) (Color 0.5 0.5 0.5))
+      (Color 1 1 1),
+
+
+    TestCase $ assertEqual
+      "Plate add"
+      (addPlates (Plate (PlateSettings 1 1) [Color 1 1 1]) (Plate (PlateSettings 1 1) [Color 1 1 1]))
+      (Plate (PlateSettings 1 1) [Color 2 2 2]),
+
+
+    TestCase $ assertEqual
       "Sphere ray intersection hit"
       (intersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
       (Just 1),
