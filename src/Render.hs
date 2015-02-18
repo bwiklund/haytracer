@@ -39,12 +39,17 @@ photonCast scene stdGen photon =
   let mIntersect = intersectDistance (head $ objects scene) (ray photon)
    in case mIntersect of
      Nothing -> photon -- we're done
-     Just dist -> let lightLevel = (x newDirection)
-                      newColor = (multiply (Color lightLevel lightLevel lightLevel) (color photon))
+     Just dist -> let lightLevel = 0.8
+                      nextColor = multiply (Color lightLevel lightLevel lightLevel) (color photon)
                       newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) dist)
                       bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
-                      newDirection = randomVector bounceStdGen
-                   in Photon newColor (Ray newPosition newDirection) ((bounces photon)+1)
+                      nextDirection = randomVector bounceStdGen
+                      nextBounceNum = (bounces photon) + 1
+                      nextRay = Ray newPosition nextDirection
+                      nextPhoton = Photon nextColor nextRay nextBounceNum
+                   in if nextBounceNum > 2
+                        then nextPhoton
+                        else photonCast scene bounceStdGen nextPhoton
 
 data PlateSettings = PlateSettings { width :: Int, height :: Int }
 
@@ -57,6 +62,12 @@ toBytes :: Plate -> B.ByteString
 toBytes plate = B.pack (map (floor . (*255)) (concat $ map toRgbArray $ pixels plate))
 
 -- stub
+applyEnvironmentLight :: Photon -> Photon
+applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
+                                   lightColor = Color lightLevel lightLevel lightLevel
+                                   newColor = multiply (color photon) lightColor
+                                in Photon newColor (ray photon) (bounces photon)
+
 renderScene :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
 renderScene scene camera plateSettings stdGen =
   let rays = cameraRaysForPlate camera plateSettings
@@ -64,7 +75,8 @@ renderScene scene camera plateSettings stdGen =
       -- each photon needs it's OWN seeded RNG if this is to run in parallel and without IO
       stdGens = (map mkStdGen $ (randoms stdGen :: [Int]))
       photonResults = zipWith (\stdGen' photon -> photonCast scene stdGen' photon) stdGens photons
-      colors = map color photonResults
+      envLitPhotons = map applyEnvironmentLight photonResults
+      colors = map color envLitPhotons
    in Plate plateSettings colors
 
 toRawTest :: Plate -> FilePath -> IO ()
