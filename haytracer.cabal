@@ -9,6 +9,7 @@ library
                    , time
                    , containers
                    , bytestring
+                   , random
   exposed-modules:   Vector, Render, Scene, Sphere, Camera
 
 executable demo
@@ -17,6 +18,7 @@ executable demo
   build-depends:     base
                    , haytracer
                    , containers
+                   , random
 
 test-suite spec
   hs-source-dirs:    test
