@@ -6,7 +6,10 @@ import Data.List
 
 import Vector
 
-data Sphere = Sphere { position :: Vector, radius :: Double }
+data Sphere = Sphere
+  { position :: Vector
+  , radius :: Double
+  } deriving (Eq, Show)
 
 type Collision = (Sphere, Double)
 

@@ -17,11 +17,12 @@ addColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1+r2) (g1+g2) (b1+b2)
 toRgbArray :: Color -> [Double]
 toRgbArray (Color r g b) = [r, g, b]
 
-data Photon = Photon {
-  color :: Color,
-  ray :: Ray,
-  bounces :: Int
-}
+data Photon = Photon
+  { color :: Color
+  , ray :: Ray
+  , bounces :: Int
+  } deriving (Eq, Show)
+
 newPhotonFromRay ray = Photon (Color 1 1 1) ray 0
 
 -- TODO: actually respect dir instead of seding out width 0 0 1 as center of screen
@@ -56,15 +57,15 @@ photonCast scene stdGen photon =
              then nextPhoton
              else photonCast scene nextStdGen nextPhoton
 
-data PlateSettings = PlateSettings {
-  width :: Int,
-  height :: Int
-} deriving (Eq, Show)
+data PlateSettings = PlateSettings
+  { width :: Int
+  , height :: Int
+  } deriving (Eq, Show)
 
-data Plate = Plate {
-  settings :: PlateSettings,
-  pixels :: [Color]
-} deriving (Eq, Show)
+data Plate = Plate
+  { settings :: PlateSettings
+  , pixels :: [Color]
+  } deriving (Eq, Show)
 
 toBytes :: Plate -> B.ByteString
 toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
