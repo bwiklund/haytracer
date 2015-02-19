@@ -10,18 +10,33 @@ import Sphere
 import qualified Camera
 import System.Random
 
-data Color = Color Double Double Double deriving (Eq, Show)
-multColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
-addColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1+r2) (g1+g2) (b1+b2)
-
-toRgbArray :: Color -> [Double]
-toRgbArray (Color r g b) = [r, g, b]
+data Color = Color
+  { red :: Double
+  , green :: Double
+  , blue :: Double
+  } deriving (Eq, Show)
 
 data Photon = Photon
   { color :: Color
   , ray :: Ray
   , bounces :: Int
   } deriving (Eq, Show)
+
+data PlateSettings = PlateSettings
+  { width :: Int
+  , height :: Int
+  } deriving (Eq, Show)
+
+data Plate = Plate
+  { settings :: PlateSettings
+  , pixels :: [Color]
+  } deriving (Eq, Show)
+
+multColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1*r2) (g1*g2) (b1*b2)
+
+addColor (Color r1 g1 b1) (Color r2 g2 b2) = Color (r1+r2) (g1+g2) (b1+b2)
+
+toRgbArray (Color r g b) = [r, g, b]
 
 newPhotonFromRay ray = Photon (Color 1 1 1) ray 0
 
@@ -32,10 +47,11 @@ cameraRaysForPlate :: Camera.Camera -> PlateSettings -> StdGen -> Double -> [Ray
 cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) stdGen aaCoef =
   let dw = fromIntegral w
       dh = fromIntegral h
-      rayForPixel i j = let x = (((i + 0.5)/dw * 2.0 - 1.0) * zoom)
-                            y = (((j + 0.5)/dh * 2.0 - 1.0) * zoom)
-                            z = 1.0
-                         in Ray pos (Vector x y z)
+      rayForPixel i j =
+        let x = (((i + 0.5)/dw * 2.0 - 1.0) * zoom)
+            y = (((j + 0.5)/dh * 2.0 - 1.0) * zoom)
+            z = 1.0
+         in Ray pos (Vector x y z)
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
 photonCast :: Scene -> StdGen -> Photon -> Photon
@@ -57,31 +73,23 @@ photonCast scene stdGen photon =
              then nextPhoton
              else photonCast scene nextStdGen nextPhoton
 
-data PlateSettings = PlateSettings
-  { width :: Int
-  , height :: Int
-  } deriving (Eq, Show)
-
-data Plate = Plate
-  { settings :: PlateSettings
-  , pixels :: [Color]
-  } deriving (Eq, Show)
-
 toBytes :: Plate -> B.ByteString
 toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
                  in B.pack (map doubleToByteClamped (concat $ map toRgbArray $ pixels plate))
 
 -- stub
 applyEnvironmentLight :: Photon -> Photon
-applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
-                                   lightColor = Color lightLevel lightLevel lightLevel
-                                   newColor = multColor (color photon) lightColor
-                                in Photon newColor (ray photon) (bounces photon)
+applyEnvironmentLight photon =
+  let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
+      lightColor = Color lightLevel lightLevel lightLevel
+      newColor = multColor (color photon) lightColor
+   in Photon newColor (ray photon) (bounces photon)
 
 -- TODO: check dimensions
 addPlates :: Plate -> Plate -> Plate
-addPlates p1 p2 = let colorsAdded = zipWith addColor (pixels p1) (pixels p2)
-                   in Plate (settings p1) colorsAdded
+addPlates p1 p2 =
+  let colorsAdded = zipWith addColor (pixels p1) (pixels p2)
+   in Plate (settings p1) colorsAdded
 
 multiplyPlate :: Plate -> Double -> Plate
 multiplyPlate plate@(Plate platesettings pixels) exposure =
