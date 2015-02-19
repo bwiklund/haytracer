@@ -39,21 +39,22 @@ cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) stdGen aaCoe
 
 photonCast :: Scene -> StdGen -> Photon -> Photon
 photonCast scene stdGen photon =
-  let mIntersect = forwardIntersectDistance (head $ objects scene) (ray photon)
+  let mIntersect = closestForwardIntersection (objects scene) (ray photon)
    in case mIntersect of
      Nothing -> photon -- we're done
-     Just dist -> let diffuse = 0.97
-                      nextColor = multColor (Color diffuse diffuse diffuse) (color photon)
-                      newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) (dist - 0.0001))
-                      bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
-                      nextStdGen = snd $ next stdGen
-                      nextDirection = randomVector bounceStdGen
-                      nextBounceNum = (bounces photon) + 1
-                      nextRay = Ray newPosition nextDirection
-                      nextPhoton = Photon nextColor nextRay nextBounceNum
-                   in if nextBounceNum > 2
-                        then nextPhoton
-                        else photonCast scene nextStdGen nextPhoton
+     Just (sphere, dist) ->
+       let diffuse = 0.97
+           nextColor = multColor (Color diffuse diffuse diffuse) (color photon)
+           newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) (dist - 0.0001))
+           bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
+           nextStdGen = snd $ next stdGen
+           nextDirection = randomVector bounceStdGen
+           nextBounceNum = (bounces photon) + 1
+           nextRay = Ray newPosition nextDirection
+           nextPhoton = Photon nextColor nextRay nextBounceNum
+        in if nextBounceNum > 2
+             then nextPhoton
+             else photonCast scene nextStdGen nextPhoton
 
 data PlateSettings = PlateSettings {
   width :: Int,
