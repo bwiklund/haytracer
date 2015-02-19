@@ -1,11 +1,14 @@
 module Main (main) where
 
 import Test.HUnit
+import System.Random
 
 import Vector
 import Sphere
 import Render
 import Camera
+
+stdGen = mkStdGen 0
 
 tests = TestList [
 
@@ -101,13 +104,13 @@ tests = TestList [
 
     TestCase $ assertEqual
       "Camera ray generation 1x1"
-      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 1 1))
+      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 1 1) stdGen 0)
       [(Ray (Vector 0 0 0) (Vector 0 0 1))],
 
 
     TestCase $ assertEqual
       "Camera ray generation 2x2"
-      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 2 2))
+      (cameraRaysForPlate (Camera (Vector 0 0 0) (Vector 0 0 1) 0.5) (PlateSettings 2 2) stdGen 0)
       [(Ray (Vector 0 0 0) (Vector (-0.25) (-0.25) 1)),
        (Ray (Vector 0 0 0) (Vector (-0.25) (0.25) 1)),
        (Ray (Vector 0 0 0) (Vector (0.25) (-0.25) 1)),

@@ -28,3 +28,4 @@ test-suite spec
                    , haytracer
                    , HUnit
                    , containers
+                   , random

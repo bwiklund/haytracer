@@ -25,8 +25,10 @@ data Photon = Photon {
 newPhotonFromRay ray = Photon (Color 1 1 1) ray 0
 
 -- TODO: actually respect dir instead of seding out width 0 0 1 as center of screen
-cameraRaysForPlate :: Camera.Camera -> PlateSettings -> [Ray]
-cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) =
+-- the final `Double` is a coef to tell how much to randomly scatter the rays.
+-- it's basically there so we can pass in fooStdGen and 0 for the test suite for simplicity
+cameraRaysForPlate :: Camera.Camera -> PlateSettings -> StdGen -> Double -> [Ray]
+cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) stdGen aaCoef =
   let dw = fromIntegral w
       dh = fromIntegral h
       rayForPixel i j = let x = (((i + 0.5)/dw * 2.0 - 1.0) * zoom)
@@ -69,7 +71,7 @@ toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
 
 -- stub
 applyEnvironmentLight :: Photon -> Photon
-applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 0.1 else 0.005
+applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0.2
                                    lightColor = Color lightLevel lightLevel lightLevel
                                    newColor = multColor (color photon) lightColor
                                 in Photon newColor (ray photon) (bounces photon)
@@ -79,18 +81,26 @@ addPlates :: Plate -> Plate -> Plate
 addPlates p1 p2 = let colorsAdded = zipWith addColor (pixels p1) (pixels p2)
                    in Plate (settings p1) colorsAdded
 
-renderScene :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
-renderScene scene camera plateSettings stdGen =
-  let passStdGens = take 10 (map mkStdGen $ (randoms stdGen :: [Int]))
+multiplyPlate :: Plate -> Double -> Plate
+multiplyPlate plate@(Plate platesettings pixels) exposure =
+  let color = Color exposure exposure exposure
+      newPixels = map (multColor color) pixels
+   in Plate platesettings newPixels
+
+renderScene :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Int -> Plate
+renderScene scene camera plateSettings stdGen numPasses =
+  let passStdGens = take numPasses (map mkStdGen $ (randoms stdGen :: [Int]))
       passes = map (renderPass scene camera plateSettings) passStdGens -- todo: use fold and accumulate because memory
-   in foldl1 addPlates passes
+      summed = foldl1 addPlates passes
+   in multiplyPlate summed (1/(fromIntegral numPasses))
 
 renderPass :: Scene -> Camera.Camera -> PlateSettings -> StdGen -> Plate
 renderPass scene camera plateSettings stdGen =
-  let rays = cameraRaysForPlate camera plateSettings
+  let rays = cameraRaysForPlate camera plateSettings cameraRayStdGen 1
       photons = map newPhotonFromRay rays
       -- each photon needs it's OWN seeded RNG if this is to run in parallel and without IO
       stdGens = map mkStdGen $ (randoms stdGen :: [Int])
+      cameraRayStdGen = stdGen -- for now
       photonResults = zipWith (\stdGen' photon -> photonCast scene stdGen' photon) stdGens photons
       envLitPhotons = map applyEnvironmentLight photonResults
       colors = map color envLitPhotons
