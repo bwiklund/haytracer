@@ -1,6 +1,8 @@
 module Sphere where
 
 import Control.Monad (mfilter)
+import Data.Maybe
+import Data.List
 
 import Vector
 
@@ -34,5 +36,6 @@ forwardIntersectDistance sphere ray =
 
 closestForwardIntersection :: [Sphere] -> Ray -> Maybe Collision
 closestForwardIntersection objects ray =
-  let object = head $ objects
-   in fmap (\dist -> (object, dist)) (forwardIntersectDistance object ray)
+  let collisions = mapMaybe (\object -> fmap (\dist -> (object, dist)) (forwardIntersectDistance object ray)) objects
+      collisionsSorted = sortBy (\a b -> compare (snd a) (snd b)) collisions
+   in listToMaybe collisionsSorted
