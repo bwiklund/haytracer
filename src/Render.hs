@@ -72,7 +72,7 @@ toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
 
 -- stub
 applyEnvironmentLight :: Photon -> Photon
-applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0.2
+applyEnvironmentLight photon = let lightLevel = if (x (direction (ray photon))) < 0 then 1 else 0
                                    lightColor = Color lightLevel lightLevel lightLevel
                                    newColor = multColor (color photon) lightColor
                                 in Photon newColor (ray photon) (bounces photon)
