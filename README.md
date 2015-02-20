@@ -1,4 +1,4 @@
-# htrace
+# haytracer
 
 A raytracer written in haskell
 

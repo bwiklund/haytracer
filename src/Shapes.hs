@@ -1,4 +1,4 @@
-module Sphere where
+module Shapes where
 
 import Control.Monad (mfilter)
 import Data.Maybe
@@ -6,17 +6,14 @@ import Data.List
 
 import Vector
 
-data Sphere = Sphere
+data Shape = Sphere
   { position :: Vector
   , radius :: Double
   } deriving (Eq, Show)
 
-type Collision = (Sphere, Double)
-
 -- Reference: http://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
--- NOTE: this can return negative results. use forwardIntersectDistance for raytracing
-intersectDistance :: Sphere -> Ray -> Maybe Double
-intersectDistance (Sphere {position = p, radius = r}) (Ray {origin = rOrigin, direction = rDir}) =
+-- NOTE: this can return negative results. use forwardintersectRay for raytracing
+intersectRay (Sphere {position = p, radius = r}) (Ray {origin = rOrigin, direction = rDir}) =
   let offset = p `sub` rOrigin
       lDotC = (normalize rDir) `dot` offset
       cSquared = offset `dot` offset
@@ -33,12 +30,12 @@ intersectDistance (Sphere {position = p, radius = r}) (Ray {origin = rOrigin, di
                        else Just $ max sol1 sol2
 
 -- this is what we actually care about
-forwardIntersectDistance :: Sphere -> Ray -> Maybe Double
-forwardIntersectDistance sphere ray =
-  mfilter (> 0) (intersectDistance sphere ray)
+forwardintersectRay :: Shape -> Ray -> Maybe Double
+forwardintersectRay shape ray =
+  mfilter (> 0) (intersectRay shape ray)
 
-closestForwardIntersection :: [Sphere] -> Ray -> Maybe Collision
+closestForwardIntersection :: [Shape] -> Ray -> Maybe (Shape, Double)
 closestForwardIntersection objects ray =
-  let collisions = mapMaybe (\object -> fmap (\dist -> (object, dist)) (forwardIntersectDistance object ray)) objects
+  let collisions = mapMaybe (\object -> fmap (\dist -> (object, dist)) (forwardintersectRay object ray)) objects
       collisionsSorted = sortBy (\a b -> compare (snd a) (snd b)) collisions
    in listToMaybe collisionsSorted

@@ -4,7 +4,7 @@ import Test.HUnit
 import System.Random
 
 import Vector
-import Sphere
+import Shapes
 import Render
 import Camera
 
@@ -74,31 +74,31 @@ tests = TestList [
 
     TestCase $ assertEqual
       "Sphere ray intersection hit"
-      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
+      (forwardintersectRay (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 1)))
       (Just 1),
 
 
     TestCase $ assertEqual
       "Sphere ray intersection miss"
-      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 2 (-2)) (Vector 0 0 1)))
+      (forwardintersectRay (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 2 (-2)) (Vector 0 0 1)))
       Nothing,
 
 
     TestCase $ assertEqual
       "Sphere ray intersection miss"
-      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 1 1)))
+      (forwardintersectRay (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 1 1)))
       Nothing,
 
 
     TestCase $ assertEqual
       "Sphere ray intersection miss"
-      (forwardIntersectDistance (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 (-1))))
+      (forwardintersectRay (Sphere (Vector 0 0 0) 1) (Ray (Vector 0 0 (-2)) (Vector 0 0 (-1))))
       Nothing,
 
 
     TestCase $ assertEqual
       "Sphere ray intersection from inside"
-      (forwardIntersectDistance (Sphere (Vector 0 0 0) 0.5) (Ray (Vector 0 0 0) (Vector 0 0 1)))
+      (forwardintersectRay (Sphere (Vector 0 0 0) 0.5) (Ray (Vector 0 0 0) (Vector 0 0 1)))
       (Just 0.5),
 
 

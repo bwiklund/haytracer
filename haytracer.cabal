@@ -10,7 +10,7 @@ library
                    , containers
                    , bytestring
                    , random
-  exposed-modules:   Vector, Render, Scene, Sphere, Camera
+  exposed-modules:   Vector, Render, Scene, Shapes, Camera
 
 executable demo
   hs-source-dirs:    demo

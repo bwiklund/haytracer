@@ -1,6 +1,7 @@
 module Scene where
 
-import Sphere
+import Shapes
 
--- stub
-data Scene = Scene { objects :: [Sphere] }
+data Scene = Scene
+  { objects :: [Shape]
+  } deriving (Eq, Show)

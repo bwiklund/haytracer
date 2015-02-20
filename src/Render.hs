@@ -6,7 +6,7 @@ import qualified Data.ByteString as B
 
 import Scene
 import Vector
-import Sphere
+import Shapes
 import qualified Camera
 import System.Random
 
@@ -59,7 +59,7 @@ photonCast scene stdGen photon =
   let mIntersect = closestForwardIntersection (objects scene) (ray photon)
    in case mIntersect of
      Nothing -> photon -- we're done
-     Just (sphere, dist) ->
+     Just (object, dist) ->
        let diffuse = 0.97
            nextColor = multColor (Color diffuse diffuse diffuse) (color photon)
            newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) (dist - 0.0001))

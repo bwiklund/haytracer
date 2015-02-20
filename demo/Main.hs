@@ -3,7 +3,7 @@ module Main where
 import Render
 import Scene
 import Vector
-import Sphere
+import Shapes
 import qualified Camera
 import System.Random
 
