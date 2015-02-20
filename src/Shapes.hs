@@ -2,7 +2,8 @@ module Shapes where
 
 import Control.Monad (mfilter)
 import Data.Maybe
-import Data.List
+import Data.List (sortBy)
+import Data.Function (on)
 
 import Vector
 
@@ -37,5 +38,5 @@ forwardIntersectRay shape ray =
 closestForwardIntersection :: [Shape] -> Ray -> Maybe Collision
 closestForwardIntersection objects ray =
   let collisions = mapMaybe (\object -> fmap (\dist -> (object, dist)) (forwardIntersectRay object ray)) objects
-      collisionsSorted = sortBy (\a b -> compare (snd a) (snd b)) collisions
+      collisionsSorted = sortBy (compare `on` snd) collisions
    in listToMaybe collisionsSorted
