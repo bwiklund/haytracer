@@ -34,8 +34,12 @@ normalize v = mult v (1.0 / (mag v))
 dot :: Vector -> Vector -> Double
 dot (Vector ax ay az) (Vector bx by bz) = ax*bx + ay*by + az*bz
 
--- TODO: dig up that even distribution random fn from a while ago.
-randomVector :: StdGen -> Vector
-randomVector stdGen =
-  let (x:y:z:_) = take 3 (randoms stdGen :: [Double])
-   in normalize $ (Vector (x - 0.5) (y - 0.5) (z - 0.5))
+randomOnSphere :: StdGen -> Vector
+randomOnSphere stdGen =
+  let rands = take 2 (randoms stdGen :: [Double])
+      theta = acos $ (rands !! 0) * 2 - 1
+      phi = (rands !! 1) * 2 * pi
+      x = (cos theta) * (cos phi)
+      y = sin phi
+      z = (cos theta) * (sin phi)
+   in Vector x y z
