@@ -7,6 +7,7 @@ import Vector
 import Shapes
 import Render
 import Camera
+import Color
 
 stdGen = mkStdGen 0
 
