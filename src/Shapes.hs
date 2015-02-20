@@ -37,6 +37,7 @@ forwardIntersectRay shape ray =
 
 closestForwardIntersection :: [Shape] -> Ray -> Maybe Collision
 closestForwardIntersection objects ray =
-  let collisions = mapMaybe (\object -> fmap (\dist -> (object, dist)) (forwardIntersectRay object ray)) objects
+  let collisions = mapMaybe objectToMaybeCollision objects
+      objectToMaybeCollision object = fmap ((,) object) (forwardIntersectRay object ray)
       collisionsSorted = sortBy (compare `on` snd) collisions
-   in listToMaybe collisionsSorted
+   in listToMaybe collisionsSorted -- return the closest or nothing
