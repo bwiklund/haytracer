@@ -44,18 +44,20 @@ cameraRaysForPlate (Camera.Camera pos dir zoom) (PlateSettings w h) stdGen aaCoe
    in [rayForPixel i j | i <- [0.0..dw-1.0], j <- [0.0..dh-1.0]]
 
 photonCast :: Scene -> StdGen -> Photon -> Photon
-photonCast scene stdGen photon =
+photonCast scene stdGen photon@(Photon pColor (Ray pRayOrigin pRayDirection) pBounces) =
   let mIntersect = closestForwardIntersection (objects scene) (ray photon)
    in case mIntersect of
      Nothing -> photon -- we're done
      Just (object, dist) ->
        let diffuse = 0.97
-           nextColor = multColor (Color diffuse diffuse diffuse) (color photon)
-           newPosition = (origin (ray photon)) `add` (mult (normalize (direction (ray photon))) (dist - 0.0001))
+           surfaceOffset = 0.0001 -- so rounding errors don't let photons penetrate
+           nextColor = multColor (Color diffuse diffuse diffuse) pColor
+           offsetVector = (normalize pRayDirection) `mult` (dist - surfaceOffset)
+           newPosition = pRayOrigin `add` offsetVector
            bounceStdGen = snd $ (random stdGen :: (Int, StdGen))
            nextStdGen = snd $ next stdGen
            nextDirection = randomOnSphere bounceStdGen
-           nextBounceNum = (bounces photon) + 1
+           nextBounceNum = pBounces + 1
            nextRay = Ray newPosition nextDirection
            nextPhoton = Photon nextColor nextRay nextBounceNum
         in if nextBounceNum > 2
@@ -64,7 +66,8 @@ photonCast scene stdGen photon =
 
 toBytes :: Plate -> B.ByteString
 toBytes plate = let doubleToByteClamped = (min 255) . (max 0) . floor . (*255)
-                 in B.pack (map doubleToByteClamped (concat $ map toRgbArray $ pixels plate))
+                    asDoubles = concat $ map toRgbArray $ pixels plate
+                 in B.pack $ map doubleToByteClamped asDoubles
 
 -- stub
 applyEnvironmentLight :: Photon -> Photon
